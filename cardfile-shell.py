@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys, subprocess, shutil
 from pathlib import Path
 from PyQt6.QtWidgets import (
@@ -131,7 +130,7 @@ class MainWindow(QMainWindow):
         self.apps = load_apps()
         self.showFullScreen()
 
-        # List widget for draggable cards
+        #  draggable cards
         self.list_widget = QListWidget()
         self.list_widget.setViewMode(QListWidget.ViewMode.IconMode)
         self.list_widget.setMovement(QListWidget.Movement.Snap)
@@ -156,7 +155,7 @@ class MainWindow(QMainWindow):
         power_menu.addAction("Sleep", lambda: subprocess.run(["systemctl", "suspend"]))
         self.power_btn.setMenu(power_menu)
 
-        # Help button
+        # Help/About button
         self.help_btn = QPushButton("?")
         self.help_btn.setFixedSize(32, 32)
         top_layout.addWidget(self.help_btn)
