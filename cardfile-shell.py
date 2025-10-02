@@ -1,17 +1,30 @@
-import sys, subprocess, shutil
+#!/usr/bin/env python3
+from PyQt6.QtGui import QAction
+from PyQt6.QtGui import QIcon, QPixmap, QKeySequence, QAction
+
+import sys, subprocess, shutil, os
 from pathlib import Path
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QLabel, QFileDialog, QMessageBox, QListWidget, QListWidgetItem,
-    QInputDialog, QDialog, QLineEdit, QDialogButtonBox, QMenu
+    QInputDialog, QDialog, QLineEdit, QDialogButtonBox
 )
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QIcon, QPixmap, QKeySequence
 from PyQt6.QtCore import Qt, QSize
 
-# Directory of the running script
+# -----------------------------
+# CONFIGURATION
+# -----------------------------
 SCRIPT_DIR = Path(__file__).resolve().parent
 CONFIG_FILE = SCRIPT_DIR / ".cardfile_apps.txt"
+ICONS_DIR = SCRIPT_DIR / "ICONS"
+ICONS_DIR.mkdir(exist_ok=True)
+WALLPAPERS_DIR = SCRIPT_DIR / "WALLPAPERS"
+WALLPAPERS_DIR.mkdir(exist_ok=True)
 
+# -----------------------------
+# APP DATA CLASS
+# -----------------------------
 class AppEntry:
     def __init__(self, name, command, icon=None):
         self.name = name
@@ -30,6 +43,9 @@ class AppEntry:
             return AppEntry(name, command, icon)
         return None
 
+# -----------------------------
+# LOAD/SAVE APPS
+# -----------------------------
 def load_apps():
     apps = []
     if CONFIG_FILE.exists():
@@ -38,7 +54,7 @@ def load_apps():
             if app:
                 apps.append(app)
     else:
-        # Default apps
+        # default apps
         for name, cmd in [("Firefox","firefox"), ("Gedit","gedit")]:
             path = shutil.which(cmd)
             if path:
@@ -48,12 +64,15 @@ def load_apps():
 def save_apps(apps):
     CONFIG_FILE.write_text("\n".join(app.serialize() for app in apps), encoding="utf-8")
 
+# -----------------------------
+# EDIT DIALOG
+# -----------------------------
 class EditDialog(QDialog):
     def __init__(self, app: AppEntry, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Edit App")
         self.app = app
-
+        self.setFixedSize(300, 200)
         layout = QVBoxLayout(self)
 
         self.name_edit = QLineEdit(app.name)
@@ -78,7 +97,7 @@ class EditDialog(QDialog):
         layout.addWidget(buttons)
 
     def choose_icon(self):
-        icon_path, _ = QFileDialog.getOpenFileName(self, "Choose Icon", str(Path.home() / "Icons"),
+        icon_path, _ = QFileDialog.getOpenFileName(self, "Choose Icon", str(ICONS_DIR),
                                                    "Images (*.png *.jpg *.svg *.ico)")
         if icon_path:
             self.app.icon = icon_path
@@ -87,6 +106,9 @@ class EditDialog(QDialog):
         self.app.name = self.name_edit.text().strip()
         self.app.command = self.cmd_edit.text().strip()
 
+# -----------------------------
+# CARD WIDGET
+# -----------------------------
 class CardWidget(QWidget):
     def __init__(self, app: AppEntry, launch_callback, edit_callback):
         super().__init__()
@@ -97,13 +119,10 @@ class CardWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # App name label
         self.label = QLabel(app.name)
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.label.setStyleSheet("font-weight: bold; font-size: 14px;")
         layout.addWidget(self.label)
 
-        # Icon button
         self.icon_btn = QPushButton()
         self.icon_btn.setIconSize(QSize(128, 128))
         self.icon_btn.setFixedSize(140, 140)
@@ -111,11 +130,12 @@ class CardWidget(QWidget):
         self.icon_btn.clicked.connect(lambda: self.launch_callback(app))
         layout.addWidget(self.icon_btn)
 
-        # Edit button
         self.edit_btn = QPushButton("Edit")
-        self.edit_btn.setFixedHeight(30)
         self.edit_btn.clicked.connect(lambda: self.edit_callback(app))
         layout.addWidget(self.edit_btn)
+
+        self.setLayout(layout)
+        self.setFixedSize(160, 220)
 
     def update_icon(self):
         if self.app.icon and Path(self.app.icon).exists():
@@ -123,57 +143,65 @@ class CardWidget(QWidget):
         else:
             self.icon_btn.setIcon(QIcon.fromTheme("application-x-executable"))
 
+# -----------------------------
+# MAIN WINDOW / DE
+# -----------------------------
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Cardfile Shell")
+        self.setWindowTitle("Cardfile DE")
         self.apps = load_apps()
         self.showFullScreen()
 
-        #  draggable cards
+        # Central widget
         self.list_widget = QListWidget()
         self.list_widget.setViewMode(QListWidget.ViewMode.IconMode)
         self.list_widget.setMovement(QListWidget.Movement.Snap)
         self.list_widget.setResizeMode(QListWidget.ResizeMode.Adjust)
-        self.list_widget.setSpacing(16)
+        self.list_widget.setSpacing(20)
         self.list_widget.setDragDropMode(QListWidget.DragDropMode.InternalMove)
 
-        # Top bar layout
+        # Desktop wallpaper
+        self.desktop_label = QLabel()
+        self.desktop_label.setScaledContents(True)
+        layout = QVBoxLayout()
+        layout.addWidget(self.desktop_label)
+        layout.addWidget(self.list_widget)
+
+        # Top menu buttons
+        self.power_btn = QPushButton("⏻ Power")
+        self.power_btn.clicked.connect(self.show_power_menu)
+        self.add_btn = QPushButton("Add App")
+        self.add_btn.clicked.connect(self.add_app)
         top_layout = QHBoxLayout()
-        self.add_button = QPushButton("Add App")
-        self.add_button.clicked.connect(self.add_app)
-        top_layout.addWidget(self.add_button)
-        top_layout.addStretch()  # Push next buttons to right
-
-        # Power button
-        self.power_btn = QPushButton("⏻")
-        self.power_btn.setFixedSize(32, 32)
+        top_layout.addWidget(self.add_btn)
+        top_layout.addStretch()
         top_layout.addWidget(self.power_btn)
-        power_menu = QMenu()
-        power_menu.addAction("Shutdown", lambda: subprocess.run(["systemctl", "poweroff"]))
-        power_menu.addAction("Reboot", lambda: subprocess.run(["systemctl", "reboot"]))
-        power_menu.addAction("Sleep", lambda: subprocess.run(["systemctl", "suspend"]))
-        self.power_btn.setMenu(power_menu)
 
-        # Help/About button
-        self.help_btn = QPushButton("?")
-        self.help_btn.setFixedSize(32, 32)
-        top_layout.addWidget(self.help_btn)
-        help_menu = QMenu()
-        help_menu.addAction("About", lambda: QMessageBox.information(self, "About", "Cardfile Shell Beta 1.0"))
-        self.help_btn.setMenu(help_menu)
-
-        # Main layout
-        main_layout = QVBoxLayout()
-        main_layout.addLayout(top_layout)
-        main_layout.addWidget(self.list_widget)
+        central_layout = QVBoxLayout()
+        central_layout.addLayout(top_layout)
+        central_layout.addWidget(self.desktop_label)
+        central_layout.addWidget(self.list_widget)
 
         container = QWidget()
-        container.setLayout(main_layout)
+        container.setLayout(central_layout)
         self.setCentralWidget(container)
 
         self.refresh_cards()
+        self.load_wallpaper()
+        self.setup_hotkeys()
 
+    # -----------------------------
+    # Wallpaper
+    # -----------------------------
+    def load_wallpaper(self):
+        wallpapers = list(WALLPAPERS_DIR.glob("*"))
+        if wallpapers:
+            self.desktop_label.setPixmap(QPixmap(str(wallpapers[0])))
+
+    # -----------------------------
+    # Cards
+    # -----------------------------
     def refresh_cards(self):
         self.list_widget.clear()
         for app in self.apps:
@@ -220,6 +248,52 @@ class MainWindow(QMainWindow):
         save_apps(self.apps)
         self.refresh_cards()
 
+    # -----------------------------
+    # Power Menu
+    # -----------------------------
+    def show_power_menu(self):
+        menu = QMessageBox(self)
+        menu.setWindowTitle("Power Options")
+        menu.setText("Choose an action:")
+        shutdown = menu.addButton("Shutdown", QMessageBox.ButtonRole.AcceptRole)
+        reboot = menu.addButton("Reboot", QMessageBox.ButtonRole.AcceptRole)
+        sleep = menu.addButton("Sleep", QMessageBox.ButtonRole.AcceptRole)
+        cancel = menu.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
+        menu.exec()
+        if menu.clickedButton() == shutdown:
+            subprocess.Popen(["systemctl", "poweroff"])
+        elif menu.clickedButton() == reboot:
+            subprocess.Popen(["systemctl", "reboot"])
+        elif menu.clickedButton() == sleep:
+            subprocess.Popen(["systemctl", "suspend"])
+
+    # -----------------------------
+    # Hotkeys (only work inside DE window)
+    # -----------------------------
+    def setup_hotkeys(self):
+        self.shortcut_close = QKeySequence("Meta+X")
+        self.shortcut_switch = QKeySequence("Meta+Tab")
+        self.addAction(self.create_action("Close Window", self.hotkey_close, self.shortcut_close))
+        self.addAction(self.create_action("Switch Window", self.hotkey_switch, self.shortcut_switch))
+
+    def create_action(self, name, func, keyseq):
+        action = QAction(name, self)
+        action.triggered.connect(func)
+        action.setShortcut(keyseq)
+        return action
+
+    def hotkey_close(self):
+        widget = QApplication.focusWidget()
+        if widget and isinstance(widget, QWidget) and widget != self.desktop_label:
+            widget.close()
+
+    def hotkey_switch(self):
+        # simple focus switch
+        self.list_widget.setFocus()
+
+# -----------------------------
+# MAIN
+# -----------------------------
 def main():
     app = QApplication(sys.argv)
     win = MainWindow()
@@ -228,3 +302,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
