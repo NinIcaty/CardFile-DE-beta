@@ -28,7 +28,9 @@ ADD FOLDERS "WALLPAPERS" and "ICONS"
 > ⚠ Note: On Arch, ensure your system libraries are up to date to avoid ICU library issues with PyQt6.
 
 ---
-
+## Recomendations
+-Alacarte if you are using this on top of GNOME
+-GDM if you want to use this as a stand alone DE
 ## Installation
 
 ### Debian / Ubuntu
