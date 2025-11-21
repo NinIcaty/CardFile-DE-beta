@@ -41,7 +41,7 @@ sudo apt update
 sudo apt install python3 python3-pip python3-pyqt6 python3-pyqt6.qtwebengine
 
 # Clone the repository
-
+git clone https://github.com/NinIcaty/CardFile-DE-beta.git
 cd CardFile-DE-beta
 
 # Make the main script executable
@@ -59,7 +59,7 @@ sudo pacman -Syu
 sudo pacman -S python python-pyqt6 python-pyqt6-sip
 
 # Clone the repository
-git clone https://github.com/YourUsername/CardFile-DE.git
+git clone https://github.com/NinIcaty/CardFile-DE-beta.git
 cd CardFile-DE-beta
 
 # Make the main script executable
