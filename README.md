@@ -45,11 +45,12 @@ cd CardFile-DE
 
 # Make the main script executable
 chmod +x cardfile-shell.py
+```
 
 
 
-
-#AECH/MANJARO
+### Arch / Manjaro
+```
 # Update your system (recommended)
 sudo pacman -Syu
 
