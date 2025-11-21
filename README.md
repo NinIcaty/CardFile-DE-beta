@@ -23,7 +23,7 @@ ADD FOLDERS "WALLPAPERS" and "ICONS"
 - Python 3.13+
 - PyQt6
 - Linux (Debian-based or Arch-based)
-(RedHat should work But not tested)
+> ⚠ RedHat should work But not tested
 > ⚠ Note: On Arch, ensure your system libraries are up to date to avoid ICU library issues with PyQt6.
 
 ---
