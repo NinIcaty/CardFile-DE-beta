@@ -27,6 +27,7 @@ A CardFile DE (the pre-Windows 95 Windows DE )  for Linux\n
 ---
 ## Recomendations
 -Alacarte if you are using this on top of GNOME
+
 -GDM if you want to use this as a stand alone DE
 ## Installation
 
