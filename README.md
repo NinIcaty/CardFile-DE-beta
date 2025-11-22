@@ -1,8 +1,7 @@
 # CardFile-DE-beta
 A CardFile DE (the pre-Windows 95 Windows DE )  for Linux\n
-#INSTRUCTIONS
 
-
+### Instructions
 ## Features
 
 - App launcher with card-style UI
