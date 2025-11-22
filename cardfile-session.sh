@@ -3,11 +3,11 @@
 
 # --- 1. Set wallpaper ---
 # You can change "default.jpg" to any in the wallpapers/ folder
-feh --bg-scale "$HOME/CardFile/wallpapers/default.jpg" &
+feh --bg-scale "./default.jpg" &
 
 # --- 2. Start hotkey daemon ---
 # Needs sxhkd installed
-sxhkd -c "$HOME/CardFile/sxhkdrc" &
+sxhkd -c "./sxhkdrc" &
 
 # --- 3. Start window manager ---
 # You need a WM to manage windows (Cardfile is a shell, not a WM).
@@ -15,5 +15,4 @@ sxhkd -c "$HOME/CardFile/sxhkdrc" &
 openbox-session &
 
 # --- 4. Start the Cardfile shell ---
-python3 "$HOME/CardFile/cardfile-shell.py"
-
+python3 "./cardfile-shell.py"
