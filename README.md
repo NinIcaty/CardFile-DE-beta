@@ -6,13 +6,11 @@ A CardFile DE (the pre-Windows 95 Windows DE )  for Linux\n
 
 - App launcher with card-style UI
 - Built-in app editor (edit name, command, icon)
-- Drag-and-drop arrangement of app cards
-- Desktop wallpaper support
-- Window management: minimize, maximize
+- Wallpaper support
 - Power menu: shutdown, reboot, sleep
 - Config saved locally in the same folder
 - Fully keyboard accessible (hotkeys for switching windows)
-
+(yea nothing much)
 ---
 
 ## Requirements
@@ -25,6 +23,12 @@ A CardFile DE (the pre-Windows 95 Windows DE )  for Linux\n
 > ⚠ Note: On Arch, ensure your system libraries are up to date to avoid ICU library issues with PyQt6.
 
 ---
+## Parameters
+At the moment there are only two parameters 
+# -wallpaper 
+You need to add path to the Image for the wallpaper
+# -wallpaper-none
+Disables wallpaper
 ## Recomendations
 -Alacarte if you are using this on top of GNOME
 
